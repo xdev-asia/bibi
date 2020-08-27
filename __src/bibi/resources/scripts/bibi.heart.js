@@ -864,13 +864,14 @@ L.loadPackage = () => O.openDocument(B.Package.Source).then(L.loadPackage.proces
         else               SpreadBefore = 'left',  SpreadAfter = 'right';
         const SpreadsDocumentFragment = document.createDocumentFragment();
         sML.forEach(_Spine.getElementsByTagName('itemref'))(ItemRef => {
-            const IDRef = ItemRef.getAttribute('idref'); if(!IDRef) return false;
-            const Source = Manifest[SourcePaths[IDRef]]; if(!Source) return false;
+            const IDRef = ItemRef.getAttribute('idref'); if(!IDRef) return true;
+            const Source = Manifest[SourcePaths[IDRef]]; if(!Source) return true;
             const Item = sML.create('iframe', { className: 'item', scrolling: 'no', allowtransparency: 'true' /*, TimeCard: {}, stamp: function(What) { O.stamp(What, this.TimeCard); }*/ });
             Item['idref'] = IDRef;
             Item.Source = Source;
             Item.AnchorPath = Source.Path;
             Item.FallbackChain = [];
+
             if(S['prioritise-fallbacks']) while(Item.Source['fallback']) {
                 const FallbackItem = Manifest[SourcePaths[Item.Source['fallback']]];
                 if(FallbackItem) Item.FallbackChain.push(Item.Source = FallbackItem);
@@ -1220,7 +1221,10 @@ L.loadItem = (Item, Opt = {}) => {
                     `</body>`,
                 `</html>`
             ].join('\n');
-            HTML = HTML.replace(/(<head(\s[^>]+)?>)/i, `$1\n<link rel="stylesheet" id="${ DefaultStyleID }" href="${ Bibi.BookStyleURL }" />` + (!B.ExtractionPolicy && !Item.Source.Preprocessed ? `\n<base href="${ O.fullPath(Item.Source.Path) }" />` : ''));
+            // remove style - duydev  HTML = HTML.replace(/(<head(\s[^>]+)?>)/i, `$1\n<link rel="stylesheet" id="${ DefaultStyleID }" href="${ Bibi.BookStyleURL }" />` + (!B.ExtractionPolicy && !Item.Source.Preprocessed ? `\n<base href="${ O.fullPath(Item.Source.Path) }" />` : ''));
+         
+            HTML = HTML.replace(/(<head(\s[^>]+)?>)/i, `$1\n<link rel="stylesheet" id="${ DefaultStyleID }"  />` + (!B.ExtractionPolicy && !Item.Source.Preprocessed ? `\n<base href="${ O.fullPath(Item.Source.Path) }" />` : ''));
+
             if(O.Local || sML.UA.LINE || sML.UA.Trident || sML.UA.EdgeHTML) { // Legacy Microsoft Browsers do not accept DataURLs for src of <iframe>. Also LINE in-app-browser is probably the same as it.
                 HTML = HTML.replace(/^<\?.+?\?>/, '').replace('</head>', `<script id="bibi-onload">window.addEventListener('load', function() { parent.R.Items[${ Item.Index }].onLoaded(); return false; });</script>\n</head>`);
                 Item.onLoaded = () => {
@@ -1233,7 +1237,9 @@ L.loadItem = (Item, Opt = {}) => {
                 Item.contentDocument.open(); Item.contentDocument.write(HTML); Item.contentDocument.close();
                 return;
             }
-            Item.ContentURL = O.createBlobURL('Text', HTML, S['allow-scripts-in-content'] && /\.(xht(ml)?|xml)$/i.test(Item.Source.Path) ? 'application/xhtml+xml' : 'text/html'), Item.Source.Content = '';
+            const urlParams = new URLSearchParams(window.location.search);
+
+            Item.ContentURL = window.location.origin +'/wp-content/uploads/book/bip-v2/bookshelf/'+urlParams.get('book')+'/'+Item.Source.Path, Item.Source.Content = '';
         }
         Item.onload = resolve;
         Item.src = Item.ContentURL;
@@ -1286,10 +1292,10 @@ L.postprocessItem = (Item) => {
     const Lv1Eles = Item.contentDocument.querySelectorAll('body>*:not(script):not(style)');
     if(Lv1Eles && Lv1Eles.length == 1) {
         const Lv1Ele = Item.contentDocument.querySelector('body>*:not(script):not(style)');
-             if(    /^svg$/i.test(Lv1Ele.tagName)) Item.Outsourcing = Item.OnlySingleSVG = true;
-        else if(    /^img$/i.test(Lv1Ele.tagName)) Item.Outsourcing = Item.OnlySingleIMG = true;
-        else if( /^iframe$/i.test(Lv1Ele.tagName)) Item.Outsourcing =                      true;
-        else if(!O.getElementInnerText(Item.Body)) Item.Outsourcing =                      true;
+             if(    /^svg$/i.test(Lv1Ele.tagName)) Item.Outsourcing = Item.OnlySingleSVG = false;
+        else if(    /^img$/i.test(Lv1Ele.tagName)) Item.Outsourcing = Item.OnlySingleIMG = false;
+        else if( /^iframe$/i.test(Lv1Ele.tagName)) Item.Outsourcing =                      false;
+        else if(!O.getElementInnerText(Item.Body)) Item.Outsourcing =                      false;
     }
     return (Item['rendition:layout'] == 'pre-paginated' ? Promise.resolve() : L.patchItemStyles(Item)).then(() => {
         E.dispatch('bibi:postprocessed-item', Item);
