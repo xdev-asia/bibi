@@ -1237,9 +1237,14 @@ L.loadItem = (Item, Opt = {}) => {
                 Item.contentDocument.open(); Item.contentDocument.write(HTML); Item.contentDocument.close();
                 return;
             }
-            const urlParams = new URLSearchParams(window.location.search);
-
-            Item.ContentURL = window.location.origin +'/wp-content/uploads/book/bip-v2/bookshelf/'+urlParams.get('book')+'/'+Item.Source.Path, Item.Source.Content = '';
+            
+            if($remove_blob){
+                const urlParams = new URLSearchParams(window.location.search);
+                Item.ContentURL = window.location.origin +$path_directory+urlParams.get('book')+'/'+Item.Source.Path, Item.Source.Content = '';
+            }else {
+                Item.ContentURL = O.createBlobURL('Text', HTML, S['allow-scripts-in-content'] && /\.(xht(ml)?|xml)$/i.test(Item.Source.Path) ? 'application/xhtml+xml' : 'text/html'), Item.Source.Content = '';
+            }
+           
         }
         Item.onload = resolve;
         Item.src = Item.ContentURL;

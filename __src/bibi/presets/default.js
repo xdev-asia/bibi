@@ -5,14 +5,13 @@ Bibi.preset({
 //-- Bookshelf
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-"bookshelf" : "../../bibi-bookshelf", // Relative path from this preset file to the bookshelf directory. "/" at the end is ignored. (To use a path begins with "http(s)://", read <01> at the bottom of this preset file.)
-
+"bookshelf" : "../../bibi-bookshelf", // Relative path from this preset file to the bookshelf directory. "/" at the end is ignored. (To use a path begins with "http(s)://", read <01> at the bottom of this preset file.
 
 //==============================================================================================================================================
 //-- Behavior
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-"reader-view-mode"              : "paged", // "paged" or "horizontal" or "vertical" ("paged" is for flipping, "horizontal" and "vertical" are for scrolling)
+"-viewreader-mode"              : "paged", // "paged" or "horizontal" or "vertical" ("paged" is for flipping, "horizontal" and "vertical" are for scrolling)
 "full-breadth-layout-in-scroll" : "no", // "yes" or "no" or "desktop" or "mobile"
 "fix-reader-view-mode"          : "no", // "yes" or "no" or "desktop" or "mobile"
 
@@ -201,6 +200,5 @@ Bibi.preset({
 
 
 */
-
 
 "bibi": "EPUB Reader on your website." });
